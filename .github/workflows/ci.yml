@@ -1,0 +1,53 @@
+name: C++ CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        build_type: [ Release, Debug ]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ninja
+      uses: seanmiddleditch/gha-setup-ninja@v4
+
+    - name: Configure CMake
+      run: >
+        cmake -B build
+        -G Ninja
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DBUILD_TESTING=ON
+        -DBUILD_BENCHMARKS=ON
+
+    - name: Build All Targets
+      run: cmake --build build --parallel
+
+    - name: Run C++ Unit and Integration Tests
+      run: ctest --test-dir build --output-on-failure
+
+    - name: Run Benchmark Smoke Test
+      run: |
+        ${{ matrix.os == 'windows-latest' && '.\\build\\benchmarks\\lob_benchmarks.exe' || './build/benchmarks/lob_benchmarks' }} --benchmark_min_warmup_time=0.1
+
+    - name: Run Deterministic Simulation
+      run: |
+        ${{ matrix.os == 'windows-latest' && '.\\build\\lob_sim.exe' || './build/lob_sim' }} run-simulation --config configs/synthetic_stable.yaml --output results/ci_test --events 5000
+
+    - name: Verify Output Artifacts
+      shell: bash
+      run: |
+        test -f results/ci_test/summary.json
+        test -f results/ci_test/report.md
+        test -f results/ci_test/trades.csv
+        test -f results/ci_test/equity_curve.csv
+        test -f results/ci_test/strategy_decisions.csv

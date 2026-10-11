@@ -1,0 +1,42 @@
+# Default Configuration for Limit Order Book Simulator
+
+instrument:
+  symbol: "BTC-USDT"
+  tick_size: 0.01
+  lot_size: 1.0
+  min_price: 0.01
+  max_price: 1000000.0
+  min_quantity: 1
+  max_quantity: 1000000
+
+matching:
+  arena_initial_capacity: 100000
+  enable_invariant_checks: true
+  allow_self_crossing: false
+
+strategy:
+  type: "as_baseline"
+  gamma: 0.1
+  k: 50.0
+  A: 140.0
+  horizon_seconds: 600.0
+  volatility_window: 50
+  fixed_volatility: 0.0
+  order_quantity: 1
+  max_inventory: 10
+  quote_update_threshold_ticks: 1
+  liquidity_skew_coeff: 1.0
+  fixed_half_spread_ticks: 2
+
+simulation:
+  initial_cash: 100000.0
+  maker_fee_rate: -0.0001
+  taker_fee_rate: 0.0002
+  data_latency_ns: 0
+  order_latency_ns: 0
+  random_seed: 42
+  event_count: 10000
+  scenario: "stable"
+  output_dir: "results/default"
+  input_file: ""
+  replay_mode: "exact"
